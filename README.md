@@ -1,4 +1,4 @@
-## CPSC 471/510 Project 4: Ghostbusters
+## CPSC 471/510 Project 5: Ghostbusters
 
 
 <center>
@@ -6,11 +6,11 @@ Berkeley Project 4
 </center>
 
 <center>
-Version 1.001\.
+Version 1.003\.
 </center>
 
 <center>
-Last Updated: 08/26/2014
+Last Updated: 10/31/2022
 </center>
 
 * * *
@@ -41,7 +41,7 @@ Last Updated: 08/26/2014
 I can hear you, ghost.
 
 Running won't save you from my
-  
+
 Particle filter
 
 </center>
@@ -380,4 +380,6 @@ To run the autograder for this question use:
 ### Submission
 
 You're not done yet!
-Make sure your modified code is pushed to gitlab.
+Make sure your modified code is pushed to Gitlab.
+You are expected to make regular commits and pushes to GitLab, and will be graded
+on making at least 5 regular commits in addition to the autograder points.
