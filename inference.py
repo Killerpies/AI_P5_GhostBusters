@@ -158,19 +158,38 @@ class ExactInference(InferenceModule):
         noisy_distance = observation
         emission_model = busters.get_observation_distribution(noisy_distance)
         pacman_position = game_state.get_pacman_position()
-
+        # print(noisy_distance)
+        # print(emission_model)
+        # print(pacman_position)
         #" *** YOUR CODE HERE ***"
         # Replace this code with a correct observation update
         # Be sure to handle the "jail" edge case where the ghost is eaten
         # and noisy_distance is None
+
+        # tbh the code already passes q1 without doing anything to base code
         all_possible = util.Counter()
         for position in self.legal_positions:
-            distance = util.manhattan_distance(position, pacman_position)
-            all_possible[position] = 1.0
-
+            # distance = util.manhattan_distance(position, pacman_position)
+            # all_possible[position] = 1.0
+            # if no noise, probably in jail
+            if noisy_distance == None:
+                inJail = self.get_jail_position()
+                # just giving the value from before
+                all_possible[inJail] = 1.0
+            else:
+                # not in jail
+                # Noisy distance check
+                distance = busters.get_noisy_distance(position, pacman_position)
+                # the likelihood of the provided noisy_distance conditioned upon all the possible true distances
+                # that could have generated it.
+                # if likelihook > 0
+                if emission_model[distance] > 0:
+                    all_possible[position] = emission_model[position] * self.beliefs[position]
 
         #"*** END YOUR CODE HERE ***"
 
+        # unless im losing it, this problem passes tests even with no code here
+        # because initialize_uniformly
         all_possible.normalize()
         self.beliefs = all_possible
 
@@ -230,8 +249,23 @@ class ExactInference(InferenceModule):
         """
         # *** YOUR CODE HERE ***
         new_beliefs = util.Counter()
-        util.raise_not_defined()
 
+        for position in new_beliefs:
+            # distribution over new positions for ghosys
+            new_pos_dist = self.get_position_distribution(self.set_ghost_position(game_state, position))
+            for newPosition, prob in new_pos_dist.items():
+                # probability times old beliefs position = new beliefs new position
+                new_beliefs[newPosition] = prob * self.beliefs[position]
+
+        self.beliefs.normalize()
+        self.beliefs = new_beliefs
+
+        # util.raise_not_defined()
+
+        # In order to obtain the distribution over new positions for the ghost,
+        # given its previous position (oldPos) as well as Pacman's current
+        # position, use this line of code:
+        #new_pos_dist = self.get_position_distribution(self.set_ghost_position(game_state, oldPos))
 
     def get_belief_distribution(self):
         return self.beliefs
