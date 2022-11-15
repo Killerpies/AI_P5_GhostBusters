@@ -184,7 +184,7 @@ class ExactInference(InferenceModule):
                 # that could have generated it.
                 # if likelihook > 0
                 if emission_model[distance] > 0:
-                    all_possible[position] = emission_model[position] * self.beliefs[position]
+                    all_possible[position] = emission_model[distance] * self.beliefs[position]
 
         #"*** END YOUR CODE HERE ***"
 
@@ -250,12 +250,13 @@ class ExactInference(InferenceModule):
         # *** YOUR CODE HERE ***
         new_beliefs = util.Counter()
 
-        for position in new_beliefs:
+        # realized I accidently looped over empty new_beliefs before.... Somehow doing that still passed q2 though?
+        for position in self.legal_positions:
             # distribution over new positions for ghosys
             new_pos_dist = self.get_position_distribution(self.set_ghost_position(game_state, position))
             for newPosition, prob in new_pos_dist.items():
                 # probability times old beliefs position = new beliefs new position
-                new_beliefs[newPosition] = prob * self.beliefs[position]
+                new_beliefs[newPosition] = new_beliefs[newPosition] + prob * self.beliefs[position]
 
         self.beliefs.normalize()
         self.beliefs = new_beliefs
