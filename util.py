@@ -410,6 +410,7 @@ def n_sample(distribution, values, n):
 
 
 def sample(distribution, values=None):
+
     if isinstance(distribution, Counter):
         items = sorted(distribution.items())
         distribution = [i[1] for i in items]
