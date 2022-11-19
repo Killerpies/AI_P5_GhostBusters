@@ -458,6 +458,7 @@ class JointParticleFilter:
         self.legal_positions = legal_positions
         self.initialize_particles()
 
+
     def initialize_particles(self):
         """
         Initialize particles to be consistent with a uniform prior.
@@ -480,7 +481,25 @@ class JointParticleFilter:
         weight with each position) is incorrect and may produce errors.
         """
         # *** YOUR CODE HERE ***
-        util.raise_not_defined()
+        #itertools.product
+        #self.legal_positions
+
+        # self.num_ghosts = game_state.get_num_agents() - 1
+        # self.ghost_agents = []
+        # self.legal_positions = legal_positions
+        # tempIter = itertools.product(legalGhostPos)
+        # print(tempIter)
+        legalGhostPos = self.legal_positions
+        #https://docs.python.org/3/library/itertools.html
+        tempIter = itertools.product(legalGhostPos, repeat=self.num_ghosts)
+        temp = list(tempIter)
+        # https://www.w3schools.com/python/ref_random_shuffle.asp
+        random.shuffle(temp)
+        particles = []
+        for i in range(self.num_particles):
+            particles.append(temp[i % len(temp)])
+        self.particles = particles
+        # util.raise_not_defined()
 
 
     def add_ghost_agent(self, agent):
@@ -527,9 +546,34 @@ class JointParticleFilter:
         if len(noisy_distances) < self.num_ghosts:
             return
         emission_models = [busters.get_observation_distribution(dist) for dist in noisy_distances]
+        values = util.Counter()
 
-        # *** YOUR CODE HERE ***
-        util.raise_not_defined()
+        # print(emission_models)
+        # print(noisy_distances)
+
+        for i in range(self.num_particles):
+            # start ghost belief at 1.0
+            currentGhostBelief = 1.0
+            for ghost in range(self.num_ghosts):
+                # if no noise ghost in jail
+                if noisy_distances[ghost] is None:
+                    self.particles[i] = self.get_particle_with_ghost_in_jail(self.particles[i], ghost)
+                else:
+                    # change belief using distance of ghost
+                    distance = util.manhattan_distance(self.particles[i][ghost], pacman_position)
+                    currentGhostBelief *= emission_models[ghost][distance]
+            values[self.particles[i]] += currentGhostBelief
+
+            # same as previos prob, if values r 0 then re initialize
+        if values.total_count() == 0:
+            self.initialize_particles()
+        else:
+            # if not 0 then update particles from sample
+            values.normalize()
+            newParticles = []
+            for j in range (self.num_particles):
+                newParticles.append(util.sample(values))
+            self.particles = newParticles
 
     def get_particle_with_ghost_in_jail(self, particle, ghost_index):
         """
@@ -584,22 +628,32 @@ class JointParticleFilter:
               self.ghost_agents[ghost_index-1], but in this project all ghost
               agents are always the same.
         """
+
+        # set_ghost_positions(game_state, ghostPositions)
+        # get_position_distribution_for_ghost(game_state, ghost_index, agent)
+        # new_pos_dist = get_position_distribution_for_ghost(
+        #              set_ghost_positions(game_state, prevGhostPositions), i, self.ghost_agents[i]
+        #           )
         new_particles = []
         for old_particle in self.particles:
-            new_particle = list(old_particle)  # A list of ghost positions
-            # now loop through and update each entry in new_particle...
-
-            # *** YOUR CODE HERE ***
-            util.raise_not_defined()
-
-
-            # *** END YOUR CODE HERE ***
+            new_particle = list()
+            for i in range(self.num_ghosts):
+                ghostPositions = set_ghost_positions(game_state, old_particle)
+                tempPositionDist = get_position_distribution_for_ghost(
+                    ghostPositions, i, self.ghost_agents[i]
+                )
+                new_particle.append(util.sample(tempPositionDist))
             new_particles.append(tuple(new_particle))
         self.particles = new_particles
 
     def get_belief_distribution(self):
         # *** YOUR CODE HERE ***
-        util.raise_not_defined()
+        tempBeliefDist = util.Counter()
+        #  making everything start at 1.0
+        for particle in self.particles:
+            tempBeliefDist[particle] += 1.0
+        tempBeliefDist.normalize()
+        return tempBeliefDist
 
 
 # One JointInference module is shared globally across instances of MarginalInference
